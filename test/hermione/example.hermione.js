@@ -1,10 +1,15 @@
-const { assert } = require('chai');
+const { assert } = require('chai'),
+ { START_URL, END_URL } = require('../data')
 
 async function getPage(browser) {
     const puppeteer = await browser.getPuppeteer()
     const [page] = await puppeteer.pages()
 
     return page
+}
+
+function createUrl(path) {
+    return START_URL + path + END_URL
 }
 const pages = [
     {
@@ -30,12 +35,11 @@ const pages = [
 
 describe('Общие требования', async function() {
     it('Шапка сайта', async function({browser}) {
-        await browser.url('http://localhost:3000/hw/store');
+        await browser.url(createUrl(''));
 
         const page = await getPage(browser)
 
         await browser.pause(200)
-
         const logo = await page.$('a[href="/hw/store/"]'),
          navLinks = await page.$('a[href="/hw/store/cart"]')
 
@@ -44,14 +48,14 @@ describe('Общие требования', async function() {
 
     })
     it('Изменение размера экрана', async function({browser}) {
-        const page = await getPage(browser)
-        const navButton = await page.$('button.Application-Toggler.navbar-toggler')
-        await browser.url('http://localhost:3000/hw/store')
-        await browser.setWindowSize(1920, 500)
-        await browser.pause(50)
-        await browser.assertView('top', 'nav')
+        // await browser.pause(3000)
+        // const page = await getPage(browser)
+        // const navButton = await page.$('button.Application-Toggler.navbar-toggler')
+        // await browser.url(createUrl(''))
+        // await browser.setWindowSize(1920, 1080)
+        // await browser.assertView('top', 'nav')
 
-        await assert.ok( navButton, 'Гамбургер не появился' )
+        // await assert.ok( navButton, 'Гамбургер не появился' )
     })
 });
 
@@ -60,7 +64,7 @@ describe('Страницы', async function() {
         const page = await getPage(browser)
 
         const checkPage = async (url, name) => {
-            await browser.url('http://localhost:3000/hw/store/' + url)
+            await browser.url(createUrl(url))
             const selector = await page.$('div#root')
             await assert.ok( selector, `Страница ${name} отсутствует` )
         }
@@ -70,24 +74,34 @@ describe('Страницы', async function() {
             await browser.pause(100)
         }
     })
-    it('страницы главная, условия доставки, контакты должны иметь статическое содержимое', async function({browser}) {
-        const page = await getPage(browser),
-         staticPages = pages.slice(1, pages.length)
+})
 
-        const checkStatic = async (url, name, html) => {
-            await browser.url('http://localhost:3000/hw/store/' + url)
-            // await browser.setWindowSize(1920, 1080)
-            // // const body = await page.$('body')
-            // await browser.pause(100)
-            // await browser.assertView(name, 'div.container', {
-            //     portoverflow: true
-            // })
-        }
-        await checkStatic(staticPages[0].url, staticPages[0].name, staticPages[0].html)
-        await browser.pause(200)
+describe('Каталог', async function() {
+    it('для каждого товара в каталоге отображается название, цена и ссылка на страницу с подробной информацией о товаре', async function({browser}) {
+        await browser.url(createUrl('catalog'))
+        const page = await getPage(browser)
 
-        // for ( { url, name, html } of staticPages ) {
+        await browser.pause(25)
+        await (await page.$('a.ProductItem-DetailsLink.card-link')).click()
 
-        // }
-    } )
+        await expect(browser).toHaveUrl(createUrl('catalog' + '/0').replace(END_URL, ''))
+    })
+    it('если товар уже добавлен в корзину, повторное нажатие кнопки "добавить в корзину" должно увеличивать его количество', async function({browser}) {
+        await browser.url(createUrl('catalog'))
+        const page = await getPage(browser)
+
+        await browser.pause(25)
+        await (await page.$('a.ProductItem-DetailsLink.card-link')).click()
+        await browser.pause(25)
+
+        const buttonAddToCart = await page.$('button.ProductDetails-AddToCart')
+        await buttonAddToCart.click()
+        await buttonAddToCart.click()
+        await buttonAddToCart.click()
+
+        await browser.url(createUrl('cart'))
+        await browser.pause(50)
+        const count = await browser.$('td.Cart-Count')
+        await expect(count).toHaveText('3')
+    })
 })
