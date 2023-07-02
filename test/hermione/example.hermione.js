@@ -14,6 +14,10 @@ function createUrl(path) {
 async function click(selector, browserOrPage) {
     await (await browserOrPage.$(selector)).click()
 }
+async function writeInInput(text, selector, page) {
+    await click(selector, page)
+    await page.keyboard.type(text)
+}
 const pages = [
     {
         urlSelector: 'nav a[href="/hw/store/catalog"]',
@@ -47,7 +51,7 @@ describe('Общие требования', async function() {
          navLinks = await page.$('a[href="/hw/store/cart"]'),
          navbar = await page.$('div.Application-Menu.navbar-collapse.collapse')
 
-        click('nav button', browser)
+        await click('nav button', browser)
         // const button = await this.browser.$('nav button')
         // await button.assertView('plain')
         // await this.browser.assertView('top', '.Application-Menu.navbar-collapse')
@@ -57,7 +61,7 @@ describe('Общие требования', async function() {
         await assert.ok( navbar, 'Меню ссылок не появилось' )
 
     })
-    it('Изменение размера экрана', async function({browser}) {
+    // it('Изменение размера экрана', async function({browser}) {
         // await browser.pause(3000)
         // const page = await getPage(browser)
         // const navButton = await page.$('button.Application-Toggler.navbar-toggler')
@@ -66,7 +70,7 @@ describe('Общие требования', async function() {
         // await browser.assertView('top', 'nav')
 
         // await assert.ok( navButton, 'Гамбургер не появился' )
-    })
+    // })
 });
 
 describe('Страницы', async function() {
@@ -166,7 +170,7 @@ describe('Корзина', async function() {
         const link = await page.$('div.col a')
         await assert.ok(link, 'если корзина пустая, должна отображаться ссылка на каталог товаров')
     } )
-    it('Поле ввода телефона должно принимать правильные номера', async function({browser}) {
+    it('Форма', async function({browser}) {
         const page = await getPage(browser)
 
         await browser.url(createUrl('catalog/0'))
@@ -177,10 +181,15 @@ describe('Корзина', async function() {
         await (await page.$('a[href="/hw/store/cart"]')).click()
         await browser.pause(25)
 
-        await click('#f-phone', page)
-        await page.keyboard.type('+79684994153')
+        await writeInInput('+79684994153', '#f-phone', page)
         await click('button.Form-Submit.btn.btn-primary', page)
 
-        await assert.ok( await page.$('.Form-Field.Form-Field_type_phone.form-control:not(.is-invalid)'))
+        await assert.ok( await page.$('.Form-Field.Form-Field_type_phone.form-control:not(.is-invalid)'), 'Поле ввода телефона должно принимать правильные номера')
+        await writeInInput('Name', '#f-name', page)
+        await writeInInput('Loooong address...', '#f-address', page)
+        await browser.pause(30)
+        await click('button.Form-Submit.btn.btn-primary', page)
+        await browser.pause(100)
+        await assert.ok( await page.$('div.Cart-SuccessMessage'), 'После отправке формы должно появлятся окно говорящее об этом.')
     })
 })

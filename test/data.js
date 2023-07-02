@@ -1,4 +1,4 @@
 module.exports = {
     START_URL: 'http://localhost:3000/hw/store/',
-    END_URL: '' // ?bug_id=7
+    END_URL: '?bug_id=1' // ?bug_id=7
 }
