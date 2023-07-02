@@ -11,6 +11,9 @@ async function getPage(browser) {
 function createUrl(path) {
     return START_URL + path + END_URL
 }
+async function click(selector, browserOrPage) {
+    await (await browserOrPage.$(selector)).click()
+}
 const pages = [
     {
         urlSelector: 'nav a[href="/hw/store/catalog"]',
@@ -44,10 +47,10 @@ describe('Общие требования', async function() {
          navLinks = await page.$('a[href="/hw/store/cart"]'),
          navbar = await page.$('div.Application-Menu.navbar-collapse.collapse')
 
-        await (await browser.$('nav button')).click()
+        click('nav button', browser)
         // const button = await this.browser.$('nav button')
         // await button.assertView('plain')
-        // await this.browser.assertView('top', 'nav button')
+        // await this.browser.assertView('top', '.Application-Menu.navbar-collapse')
 
         await assert.ok( logo, 'Шапка не появилась или не является ссылкой' )
         await assert.ok( navLinks, 'Не появилась ссылка на корзину' )
@@ -163,4 +166,21 @@ describe('Корзина', async function() {
         const link = await page.$('div.col a')
         await assert.ok(link, 'если корзина пустая, должна отображаться ссылка на каталог товаров')
     } )
+    it('Поле ввода телефона должно принимать правильные номера', async function({browser}) {
+        const page = await getPage(browser)
+
+        await browser.url(createUrl('catalog/0'))
+        await browser.pause(25)
+        const buttonAddToCart = await page.$('button.ProductDetails-AddToCart')
+        await buttonAddToCart.click()
+
+        await (await page.$('a[href="/hw/store/cart"]')).click()
+        await browser.pause(25)
+
+        await click('#f-phone', page)
+        await page.keyboard.type('+79684994153')
+        await click('button.Form-Submit.btn.btn-primary', page)
+
+        await assert.ok( await page.$('.Form-Field.Form-Field_type_phone.form-control:not(.is-invalid)'))
+    })
 })

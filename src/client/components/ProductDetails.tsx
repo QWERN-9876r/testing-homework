@@ -20,7 +20,6 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     }, [dispatch, product]);
 
     const btnSizeClass = process.env.BUG_ID !== '9' ? 'btn-lg' : 'btn-sm';
-    console.log(process.env.BUG_ID)
 
     return (
         <div className={bem(null, ['row'])}>
