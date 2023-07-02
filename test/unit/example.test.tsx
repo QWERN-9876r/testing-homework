@@ -5,12 +5,13 @@ import { render } from '@testing-library/react';
 import { Home } from '../../src/client/pages/Home';
 import { Contacts } from '../../src/client/pages/Contacts';
 import { Catalog } from '../../src/client/pages/Catalog';
-import { CartItem, CartState, Product } from '../../src/common/types';
-import { Provider, useSelector } from 'react-redux';
-import { ApplicationState, initStore } from './store';
+import { Product } from '../../src/common/types';
+import { Provider } from 'react-redux';
+import { initStore } from './store';
 import { CartApi, ExampleApi } from '../../src/client/api';
 import { BrowserRouter } from 'react-router-dom';
 import { ProductDetails } from '../../src/client/components/ProductDetails';
+import { Cart } from '../../src/client/pages/Cart';
 
 interface Page {
     Component: React.FC,
@@ -21,9 +22,6 @@ interface Page {
 const api = new ExampleApi('/hw/store'),
  cart = new CartApi(),
  store = initStore(api, cart)
-
-console.log(process.env.BUG_ID);
-
 
 const pages: Page[] = [
     {
@@ -59,7 +57,7 @@ describe('Страницы', () => {
 describe('Каталог', () => {
     it('в каталоге должны отображаться товары, список которых приходит с сервера', () => {
         const { container } = render(<BrowserRouter basename={'/hw/store'}><Provider store={store}><Catalog/></Provider></BrowserRouter>)
-        expect(container.textContent.split('Catalog').splice(1).join('Catalog')).toBe('товар 1$1DetailsItem in cartтовар 2$2Detailsтовар 2$3Details')
+        expect(container.textContent.split('Catalog').splice(1).join('Catalog')).toBe('товар 1$1DetailsItem in cartтовар 2$2DetailsItem in cartтовар 2$3Details')
     })
     const product: Product = {
         name: 'Licensed Computer',
@@ -83,11 +81,13 @@ describe('Каталог', () => {
         expect(clickHTML)
         .toBe('<div class=\"ProductDetails row\"><div class=\"col-12 col-sm-5 col-lg-4\"><img class=\"Image\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkMAYAADkANVKH3ScAAAAASUVORK5CYII=\"></div><div class=\"col-12 col-sm-7 col-lg-6\"><h1 class=\"ProductDetails-Name\">Licensed Computer</h1><p class=\"ProductDetails-Description\">Carbonite web goalkeeper gloves are ergonomically designed to give easy fit</p><p class=\"ProductDetails-Price fs-3\">$308</p><p><button class=\"ProductDetails-AddToCart btn btn-primary btn-lg\">Add to Cart</button><span class=\"CartBadge text-success mx-3\">Item in cart</span></p><dl><dt>Color</dt><dd class=\"ProductDetails-Color text-capitalize\">Sky Blue</dd><dt>Material</dt><dd class=\"ProductDetails-Material text-capitalize\">Fresh</dd></dl></div></div>')
     })
-    it('товар должен добавлятся в карзину при нажатии кнопки "Add to cart" и при повторном нажатии кол-во товара должно увеличиватся', () => {
-        expect(JSON.stringify(cart)).toBe(JSON.stringify({1: {
-            name: 'Licensed Computer',
-            price: 308,
-            count: 2
-        }}))
+})
+describe('Корзина', () => {
+    it('в корзине должна отображаться таблица с добавленными в нее товарами и для каждого товара должны отображаться' +
+     'название, цена, количество , стоимость, а также должна отображаться общая сумма заказа', () => {
+        const { container } = render(<Provider store={store} ><Cart/></Provider>)
+        const table = container.querySelector('table.Cart-Table.table').innerHTML
+
+        expect(table).toBe('<thead><tr><th scope=\"col\">#</th><th scope=\"col\">Product</th><th scope=\"col\">Price</th><th scope=\"col\">Count</th><th scope=\"col\">Total</th></tr></thead><tbody><tr data-testid=\"1\"><th class=\"Cart-Index\" scope=\"row\">1</th><td class=\"Cart-Name\">string</td><td class=\"Cart-Price\">$1</td><td class=\"Cart-Count\">1</td><td class=\"Cart-Total\">$1</td></tr><tr data-testid=\"2\"><th class=\"Cart-Index\" scope=\"row\">2</th><td class=\"Cart-Name\">product 2</td><td class=\"Cart-Price\">$121</td><td class=\"Cart-Count\">5</td><td class=\"Cart-Total\">$605</td></tr></tbody><tfoot><tr><td colspan=\"4\">Order price:</td><td class=\"Cart-OrderPrice\">$606</td></tr></tfoot>')
     })
 })

@@ -49,6 +49,11 @@ function createRootReducer(state: Partial<ApplicationState>) {
             name: 'string',
             price: 1,
             count: 1
+        },
+        2: {
+            name: 'product 2',
+            price: 121,
+            count: 5
         }
         },
         details: {
@@ -80,7 +85,7 @@ function createRootReducer(state: Partial<ApplicationState>) {
         ]
     }
 
-    const fn = (state: ApplicationState = defaultState, action: Action): ApplicationState => staticSolution
+    const fn = (state: ApplicationState = defaultState, action: Action): ApplicationState =>  staticSolution
     return fn
 }
 

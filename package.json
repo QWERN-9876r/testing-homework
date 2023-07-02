@@ -2,7 +2,7 @@
     "name": "autotests-hw-with-auto-check",
     "version": "1.0.0",
     "scripts": {
-        "start": "nodemon ./src/server/index.ts BUG_ID=9",
+        "start": "nodemon ./src/server/index.ts",
         "test:unit": "jest",
         "test:e2e": "node_modules/.bin/hermione",
         "test:e2e:gui": "node_modules/.bin/hermione gui",
